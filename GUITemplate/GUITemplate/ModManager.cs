@@ -1,20 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using GorillaLocomotion;
+using GorillaNetworking;
 using easyInputs;
 using Photon.Pun;
-using Util;
+using Utils;
 
-namespace HandHeldTemplate.Mods
+namespace GUITemplate.Mods
 {
     class ModManager
     {
         private static GameObject activePointer = null;
         private static LineRenderer sharedLineRenderer = null;
-        private static float holdDuration = 0.2f;
+        private static float holdDuration = 0.5f;
         private static float holdTimer = 0f;
-        private static float flyActivationDelay = 0.2f;
+        private static float flyActivationDelay = 0.5f;
         private static float flyHoldTimer = 0f;
         private static bool buttonDownLastFrame = false;
 
@@ -56,7 +60,7 @@ namespace HandHeldTemplate.Mods
             {
                 holdTimer = 0f;
             }
-
+            
             if (holdTimer >= holdDuration && buttonDownLastFrame)
             {
                 var colliders = Resources.FindObjectsOfTypeAll<Collider>();
@@ -71,7 +75,7 @@ namespace HandHeldTemplate.Mods
             buttonDownLastFrame = secondaryButtonDownCurrentFrame;
         }
 
-        public static void TagGunMaster()
+        public static void TagGun()
         {
             RaycastHit raycastHit;
             Physics.Raycast(GorillaLocomotion.Player.Instance.rightHandTransform.position, -GorillaLocomotion.Player.Instance.rightHandTransform.transform.up, out raycastHit);
@@ -84,12 +88,12 @@ namespace HandHeldTemplate.Mods
                 GorillaLocomotion.Player.Instance.rightHandTransform.transform.position,
                 raycastHit.point
             );
-
+            
             List<Component> hitComponents = InteractivePointer.GetHitComponents(raycastHit);
-
-            // Dont force master as it will be detected
+            
             if (!PhotonNetwork.IsMasterClient && EasyInputs.GetTriggerButtonDown(EasyHand.RightHand))
             {
+                Notification.AddNotification(NotificationType.System, "WARNING NOT ACTIVE MASTER CANNOT TAG", 2f, new Color(1f, 0f, 0f));
                 return;
             }
 
@@ -102,29 +106,42 @@ namespace HandHeldTemplate.Mods
                     Photon.Realtime.Player owner = photonView.Owner;
                     foreach (GorillaTagManager gorillaTagManager in UnityEngine.Object.FindObjectsOfType<GorillaTagManager>())
                     {
+                        Notification.AddNotification(NotificationType.Info, $"PLAYER TAGGED: {owner.NickName}", 2f, new Color(1f, 1f, 1f));
                         gorillaTagManager.AddInfectedPlayer(owner);
                     }
                 }
             }
         }
 
-        public static void TagGunNoMaster()
+        public static void PlayerInfo()
         {
             RaycastHit raycastHit;
             Physics.Raycast(GorillaLocomotion.Player.Instance.rightHandTransform.position, -GorillaLocomotion.Player.Instance.rightHandTransform.transform.up, out raycastHit);
 
+            string name = "N/A";
+            string photonId = "N/A";
+
             InteractivePointer.Initialize();
-
             InteractivePointer.UpdatePointerPosition(raycastHit.point);
-
             InteractivePointer.SetLineRendererPositions(
                 GorillaLocomotion.Player.Instance.rightHandTransform.transform.position,
                 raycastHit.point
             );
 
-            if (EasyInputs.GetTriggerButtonDown(EasyHand.RightHand) && raycastHit.collider != null)
+            List<Component> hitComponents = InteractivePointer.GetHitComponents(raycastHit);
+
+            if (EasyInputs.GetTriggerButtonDown(EasyHand.RightHand) && hitComponents.Any(comp => comp is PhotonView))
             {
-                Player.Instance.rightHandTransform.position = raycastHit.point;
+                PhotonView photonView = hitComponents.FirstOrDefault(comp => comp is PhotonView) as PhotonView;
+
+                if (photonView != null)
+                {
+                    Photon.Realtime.Player owner = photonView.Owner;
+                    name = owner.NickName;
+                    photonId = owner.UserId;
+                }
+                string message = $"PLAYER NAME: {name}\nPHOTON ID: {photonId}";
+                Notification.AddNotification(NotificationType.Info, message, 2f, new Color(1f, 1f, 0f));
             }
         }
     }
