@@ -17,8 +17,7 @@ namespace HandHeldTemplate
             base.OnInitializeMelon();
             List<PageInfo> pages = new List<PageInfo>
             {
-                new PageInfo("COVID MENU", new string[] { "Fly", "Platforms", "TagGun(M)", "TagGun", "NoClip" }),
-                new PageInfo("COVID MENU", new string[] { "SpeedBoost" })
+                new PageInfo("Page Title", new string[] { "ModA", "ModB", "ModC" })
             };
             MenuHandler.InitializePages(pages);
         }
@@ -41,34 +40,9 @@ namespace HandHeldTemplate
 
         public void HandleMods()
         {
-            if (MenuHandler.IsModEnabled("Fly"))
+            if (MenuHandler.IsModEnabled("ModA"))
             {
-                ModManager.Fly(20);
-            }
-
-            if (MenuHandler.IsModEnabled("Platforms"))
-            {
-                ModManager.Platforms(Color.grey);
-            }
-
-            if (MenuHandler.IsModEnabled("TagGun(M)"))
-            {
-                ModManager.TagGunMaster();
-            }
-
-            if (MenuHandler.IsModEnabled("TagGun"))
-            {
-                ModManager.TagGunNoMaster();
-            }
-
-            if (MenuHandler.IsModEnabled("NoClip"))
-            {
-                ModManager.NoClip();
-            }
-
-            if (MenuHandler.IsModEnabled("SpeedBoost"))
-            {
-                ModManager.SpeedBoost();
+                ModManager.Fly(25);
             }
         }
     }

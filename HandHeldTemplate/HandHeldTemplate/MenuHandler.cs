@@ -397,11 +397,6 @@ namespace Util
             }
         }
 
-        public bool IsModActive(string modName)
-        {
-            return ModNameToButtonMap.TryGetValue(modName, out Button button) && button.state;
-        }
-
         public void ToggleModStateAndColor(string modName)
         {
             // Find the button associated with the modName

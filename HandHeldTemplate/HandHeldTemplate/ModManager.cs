@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using GorillaLocomotion;
-using GorillaNetworking;
 using easyInputs;
-using UnhollowerRuntimeLib;
 using Photon.Pun;
 using Util;
 
@@ -55,53 +50,6 @@ namespace HandHeldTemplate.Mods
             }
         }
 
-        public static void Platforms(Color color)
-        {
-            bool gripButtonDown = EasyInputs.GetGripButtonDown(EasyHand.LeftHand);
-            bool gripButtonDown2 = EasyInputs.GetGripButtonDown(EasyHand.RightHand);
-            if (platformCooldown == 0f && gripButtonDown2)
-            {
-                platformCooldown = 1f;
-                rightHandPlatform = new GameObject();
-                rightHandPlatform = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                rightHandPlatform.GetComponent<Renderer>().material.SetColor("_Color", color);
-                UnityEngine.Object.Destroy(rightHandPlatform.GetComponent<Rigidbody>());
-                rightHandPlatform.transform.localScale = new Vector3(0.0125f, 0.28f, 0.3825f);
-                rightHandPlatform.transform.position = new Vector3(0f, -0.0075f, 0f) + Player.Instance.rightHandTransform.position;
-                rightHandPlatform.transform.rotation = Player.Instance.rightHandTransform.rotation;
-            }
-            else if (platformCooldown == 1f && !gripButtonDown2)
-            {
-                platformCooldown = 0f;
-                UnityEngine.Object.DestroyImmediate(rightHandPlatform);
-                UnityEngine.Object.DestroyImmediate(rightHandPlatform.gameObject);
-                UnityEngine.Object.Destroy(rightHandPlatform);
-                UnityEngine.Object.Destroy(rightHandPlatform.gameObject);
-                rightHandPlatform = null;
-            }
-            if (platformCooldown2 == 0f && gripButtonDown)
-            {
-                platformCooldown2 = 1f;
-                leftHandPlatform = new GameObject();
-                leftHandPlatform = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                leftHandPlatform.GetComponent<Renderer>().material.SetColor("_Color", color);
-                UnityEngine.Object.Destroy(leftHandPlatform.GetComponent<Rigidbody>());
-                leftHandPlatform.transform.localScale = new Vector3(0.0125f, 0.28f, 0.3825f);
-                leftHandPlatform.transform.position = new Vector3(0f, -0.0075f, 0f) + Player.Instance.leftHandTransform.position;
-                leftHandPlatform.transform.rotation = Player.Instance.leftHandTransform.rotation;
-                return;
-            }
-            if (platformCooldown2 == 1f && !gripButtonDown)
-            {
-                platformCooldown2 = 0f;
-                UnityEngine.Object.DestroyImmediate(leftHandPlatform);
-                UnityEngine.Object.DestroyImmediate(leftHandPlatform.gameObject);
-                UnityEngine.Object.Destroy(leftHandPlatform);
-                UnityEngine.Object.Destroy(leftHandPlatform.gameObject);
-                leftHandPlatform = null;
-            }
-        }
-
         public static void NoClip()
         {
             bool secondaryButtonDownCurrentFrame = EasyInputs.GetSecondaryButtonDown(EasyHand.RightHand);
@@ -129,19 +77,6 @@ namespace HandHeldTemplate.Mods
             buttonDownLastFrame = secondaryButtonDownCurrentFrame;
         }
 
-        public static void AllCosmetics()
-        {
-            foreach (CosmeticsController.CosmeticItem itemToBuy in CosmeticsController.instance.allCosmetics)
-            {
-                if (CosmeticsController.instance != null)
-                {
-                    CosmeticsController.instance.itemToBuy = itemToBuy;
-                    CosmeticsController.instance.PurchaseItem();
-                    CosmeticsController.instance.unlockedCosmetics = CosmeticsController.instance.allCosmetics;
-                }
-            }
-        }
-
         public static void TagGunMaster()
         {
             RaycastHit raycastHit;
@@ -158,6 +93,7 @@ namespace HandHeldTemplate.Mods
 
             List<Component> hitComponents = InteractivePointer.GetHitComponents(raycastHit);
 
+            // Dont force master as it will be detected
             if (!PhotonNetwork.IsMasterClient && EasyInputs.GetTriggerButtonDown(EasyHand.RightHand))
             {
                 return;
