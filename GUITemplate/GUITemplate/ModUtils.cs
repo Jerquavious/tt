@@ -13,8 +13,10 @@ namespace Utils
         public static List<Page> Pages { get; private set; } = new List<Page>();
         public static int CurrentPageIndex { get; set; } = 0;
         public static int CurrentModIndex { get; private set; } = 0;
-        public static Dictionary<string, string[]> pageMods = new Dictionary<string, string[]>();
+        public static Dictionary<Page, string[]> pageMods = new Dictionary<Page, string[]>();
+        public static Dictionary<string, bool> modState = new Dictionary<string, bool>();
         public static bool IsGuiEnabled { get; private set; } = true;
+        public static Page CurrentPage;
 
         public static void InitializePages(List<PageInfo> pageInfoList)
         {
@@ -26,13 +28,22 @@ namespace Utils
 
             Pages.Clear();
 
+            var navMods = new[] { "NextPage", "PreviousPage" };
+
             foreach (var pageInfo in pageInfoList)
             {
-                var page = new Page(new[] { pageInfo.Title }, pageInfo.Mods);
+                foreach (var mod in pageInfo.Mods)
+                {
+                    modState[mod] = false;
+                }
+                
+                var combinedMods = pageInfo.Mods.Concat(navMods).ToArray();
+
+                var page = new Page(pageInfo.Title, combinedMods);
+                pageMods[page] = combinedMods;
                 Pages.Add(page);
-                pageMods[pageInfo.Title] = pageInfo.Mods;
             }
-            
+
             if (Pages.Count > 1)
             {
                 for (int i = 1; i < Pages.Count; i++)
@@ -56,6 +67,7 @@ namespace Utils
                 Pages[pageIndex].Enable();
                 
                 CurrentPageIndex = pageIndex;
+                CurrentPage = Pages[pageIndex];
                 UpdateActiveModsBasedOnCurrentPageIndex();
             }
         }
@@ -68,12 +80,13 @@ namespace Utils
             }
             
             CurrentPageIndex = (CurrentPageIndex + 1) % Pages.Count;
+            CurrentPage = Pages[CurrentPageIndex];
             
             if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
             {
                 Pages[CurrentPageIndex].Enable();
                 
-                if (pageMods.TryGetValue(Pages[CurrentPageIndex].Titles[0], out string[] modsForCurrentPage))
+                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
                     Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
                 }
@@ -88,12 +101,13 @@ namespace Utils
             }
             
             CurrentPageIndex = (CurrentPageIndex - 1 + Pages.Count) % Pages.Count;
-            
+            CurrentPage = Pages[CurrentPageIndex];
+
             if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
             {
                 Pages[CurrentPageIndex].Enable();
                 
-                if (pageMods.TryGetValue(Pages[CurrentPageIndex].Titles[0], out string[] modsForCurrentPage))
+                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
                     Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
                 }
@@ -102,11 +116,11 @@ namespace Utils
 
         public static void NavigateWithMod(string modName)
         {
-            if (modName == "NEXTPAGE")
+            if (modName == "NextPage")
             {
                 NextPage();
             }
-            else if (modName == "PREVIOUSPAGE")
+            else if (modName == "PreviousPage")
             {
                 PreviousPage();
             }
@@ -116,7 +130,7 @@ namespace Utils
         {
             if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
             {
-                if (pageMods.TryGetValue(Pages[CurrentPageIndex].Mods[0], out string[] modsForCurrentPage))
+                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
                     Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
                 }
@@ -133,14 +147,7 @@ namespace Utils
 
         public static bool IsModEnabled(string modName)
         {
-            foreach (var page in Pages)
-            {
-                if (page.IsModEnabled(modName))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return modState[modName];
         }
 
         public static void NextMod()
@@ -148,7 +155,7 @@ namespace Utils
             if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
             {
                 Pages[CurrentPageIndex].NextModInCurrentPage();
-                if (pageMods.TryGetValue(Pages[CurrentPageIndex].Titles[0], out string[] modsForCurrentPage))
+                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
                     Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
                 }
@@ -160,7 +167,7 @@ namespace Utils
             if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
             {
                 Pages[CurrentPageIndex].PreviousModInCurrentPage();
-                if (pageMods.TryGetValue(Pages[CurrentPageIndex].Titles[0], out string[] modsForCurrentPage))
+                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
                     Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
                 }
@@ -212,13 +219,12 @@ namespace Utils
         public List<string> Mods { get; private set; } = new List<string>();
         public List<bool> ModSelectionStates { get; private set; } = new List<bool>();
         public int selectedIndex = 0;
+        private string GUITitle = "Fallback Name";
 
-        public Page(string[] titles, params string[] mods)
+        public Page(string title, params string[] mods)
         {
-            foreach (var title in titles)
-            {
-                Titles.Add(title.Replace(" ", "_"));
-            }
+            GUITitle = title;
+            Titles.Add(title.Replace(" ", "_"));
 
             string uniqueTitle = Titles.Last() + "_" + Titles.Count;
             CanvasObject = new GameObject(uniqueTitle + "Canvas");
@@ -240,7 +246,6 @@ namespace Utils
                 if (!Mods.Contains(mod))
                 {
                     Mods.Add(mod);
-                    ModSelectionStates.Add(false);
                 }
             }
 
@@ -250,7 +255,6 @@ namespace Utils
                 if (!Mods.Contains(navMod))
                 {
                     Mods.Add(navMod);
-                    ModSelectionStates.Add(false);
                 }
             }
 
@@ -297,50 +301,56 @@ namespace Utils
         {
             Text text = TextObject.GetComponent<Text>();
             StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine($"{GUITitle}");
+
             for (int i = 0; i < mods.Length; i++)
             {
                 string modName = mods[i];
                 bool isSelected = IsModEnabled(modName);
-                
+
                 bool isNavigationMod = modName == "NextPage" || modName == "PreviousPage";
                 
-                string selectionIndicator = !isNavigationMod ? (isSelected ? "<color=green>[ENABLED]</color>" : "<color=#FFCCCC>[DISABLED]</color>") : "";
-
-                string currentIndexIndicator = selectedIndex == i ? " <--" : "";
-                sb.AppendLine($"{selectionIndicator} {modName} {currentIndexIndicator}");
+                string selectionIndicator = !isNavigationMod ? (isSelected ? "<color=grey>[</color><color=green>✔</color><color=grey>]</color>" : "<color=grey>[</color><color=red>✖</color><color=grey>]</color>") : "";
+                string navigationIndicator = selectedIndex == i ? ">" : " ";
+                
+                string line = $"{navigationIndicator} {selectionIndicator} {modName,-30}";
+                
+                sb.AppendLine(line);
             }
-            text.text = "<color=red>COVID CLIENT</color>\n" + sb.ToString().TrimEnd();
+
+            text.text = sb.ToString();
         }
+
 
         public bool IsModEnabled(string modName)
         {
-            int modIndex = Mods.IndexOf(modName);
-            if (modIndex != -1)
+            if (ModUtils.modState.ContainsKey(modName))
             {
-                return ModSelectionStates[modIndex];
+                return ModUtils.modState[modName];
             }
-            return false;
+            else
+            {
+                Debug.LogError($"Mod '{modName}' not found in modState.");
+                return false;
+            }
         }
 
         public void DisableModByName(string name)
         {
-            int modIndex = Mods.IndexOf(name);
-            if (modIndex != -1)
-            {
-                ModSelectionStates[modIndex] = false;
-            }
+            ModUtils.modState[name] = false;
         }
 
         public void NextModInCurrentPage()
         {
             selectedIndex = (selectedIndex + 1) % Mods.Count;
-            UpdateMods(Mods.ToArray());
+            UpdateMods(ModUtils.pageMods[this]);
         }
 
         public void PreviousModInCurrentPage()
         {
             selectedIndex = (selectedIndex - 1 + Mods.Count) % Mods.Count;
-            UpdateMods(Mods.ToArray());
+            UpdateMods(ModUtils.pageMods[this]);
         }
 
         public void DisableIfModMatches(string modName)
@@ -351,7 +361,7 @@ namespace Utils
                 if (modIndex != -1)
                 {
                     ModSelectionStates[modIndex] = !ModSelectionStates[modIndex];
-                    UpdateMods(Mods.ToArray());
+                    UpdateMods(ModUtils.pageMods[this]);
                 }
             }
         }
@@ -360,24 +370,23 @@ namespace Utils
         {
             if (selectedIndex >= 0 && selectedIndex < Mods.Count)
             {
-                string modName = Mods[selectedIndex].ToUpper();
-                if (modName == "NEXTPAGE" || modName == "PREVIOUSPAGE")
+                string modName = Mods[selectedIndex];
+                if (modName == "NextPage" || modName == "PreviousPage")
                 {
                     ModUtils.NavigateWithMod(modName);
                     return;
                 }
                 else
                 {
-                    ModSelectionStates[selectedIndex] = !ModSelectionStates[selectedIndex];
-
-                    bool newState = ModSelectionStates[selectedIndex];
+                    bool newState = !ModUtils.modState[modName];
+                    ModUtils.modState[modName] = newState;
 
                     string message = $"{modName} IS NOW {(newState ? "[ENABLED]" : "[DISABLED]")}";
 
                     Notification.AddNotification(NotificationType.ModStatusChange, message, 2f, new Color(1f, 1f, 1f));
                 }
 
-                UpdateMods(Mods.ToArray());
+                UpdateMods(ModUtils.pageMods[this]);
             }
         }
 
@@ -391,8 +400,8 @@ namespace Utils
         {
             if (selectedIndex >= 0 && selectedIndex < Mods.Count)
             {
-                ModSelectionStates[selectedIndex] = false;
-                UpdateMods(Mods.ToArray());
+                ModUtils.modState[Mods[selectedIndex]] = false;
+                UpdateMods(ModUtils.pageMods[this]);
             }
         }
     }

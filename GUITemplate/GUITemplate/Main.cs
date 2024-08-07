@@ -18,7 +18,8 @@ namespace GUITemplate
             base.OnInitializeMelon();
             List<PageInfo> pageInfoList = new List<PageInfo>
             {
-                new PageInfo("Page Title", new string[] { "ModA", "ModB", "ModC" })
+                new PageInfo("Page1", new string[] { "ModA", "ModB", "ModC" }),
+                new PageInfo("Page2", new string[] { "ModD", "ModE", "ModF" })
             };
             ModUtils.InitializePages(pageInfoList);
             Notification.InitializeSharedCanvas();
