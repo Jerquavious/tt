@@ -16,19 +16,25 @@ namespace GUITemplate
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
+
+            PageInfo navigationPageInfo = new PageInfo("Home", 0, PageType.Navigation, new string[] { "Mods", "Credits" });
+
+            PageInfo mod1PageInfo = new PageInfo("Mods", 1, PageType.Standard, new string[] { "Fly", "ModA", "ModB", "Home" });
+
             List<PageInfo> pageInfoList = new List<PageInfo>
             {
-                new PageInfo("Page1", new string[] { "ModA", "ModB", "ModC" }),
-                new PageInfo("Page2", new string[] { "ModD", "ModE", "ModF" })
+                navigationPageInfo,
+                mod1PageInfo
             };
+
             ModUtils.InitializePages(pageInfoList);
+
             Notification.InitializeSharedCanvas();
         }
 
         public override void OnUpdate()
         {
             base.OnUpdate();
-            InteractivePointer.CheckPointerActivity();
             float currentTime = Time.time;
             float deltaTime = Time.deltaTime;
             Notification.UpdateNotifications(currentTime, deltaTime);
@@ -61,7 +67,7 @@ namespace GUITemplate
             bool changeModDown = currentPos.y >= -0.5;
             bool changeModUp = currentPos.y <= 0.5;
             bool primaryLeftButton = EasyInputs.GetPrimaryButtonDown(EasyHand.LeftHand);
-            
+
             if (changeModUp)
             {
                 NavigateRight();
@@ -102,9 +108,21 @@ namespace GUITemplate
 
         private void ManageMods()
         {
-            if (ModUtils.IsModEnabled("ModA"))
+            if (ModUtils.IsModEnabled("Fly"))
             {
                 Mods.ModManager.Fly(25);
+            }
+
+            if (ModUtils.IsModEnabled("Mods"))
+            {
+                ModUtils.GoToPageById(1);
+                ModUtils.DisableModByName("Mods");
+            }
+
+            if (ModUtils.IsModEnabled("Home"))
+            {
+                ModUtils.GoToPageById(0);
+                ModUtils.DisableModByName("Home");
             }
         }
 

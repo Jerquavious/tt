@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,19 +27,23 @@ namespace Utils
 
             Pages.Clear();
 
-            var navMods = new[] { "NextPage", "PreviousPage" };
-
             foreach (var pageInfo in pageInfoList)
             {
                 foreach (var mod in pageInfo.Mods)
                 {
                     modState[mod] = false;
                 }
-                
-                var combinedMods = pageInfo.Mods.Concat(navMods).ToArray();
 
-                var page = new Page(pageInfo.Title, combinedMods);
+                bool addNavMods = pageInfo.Type == PageType.Standard;
+
+                string[] navMods = { "NextPage", "PreviousPage" };
+
+                var combinedMods = pageInfo.Mods.Concat(addNavMods ? navMods : Array.Empty<string>()).ToArray();
+
+                var page = new Page(pageInfo.Title, pageInfo.Id, pageInfo.Type, combinedMods);
+
                 pageMods[page] = combinedMods;
+
                 Pages.Add(page);
             }
 
@@ -63,9 +66,9 @@ namespace Utils
                 {
                     page.Disable();
                 }
-                
+
                 Pages[pageIndex].Enable();
-                
+
                 CurrentPageIndex = pageIndex;
                 CurrentPage = Pages[pageIndex];
                 UpdateActiveModsBasedOnCurrentPageIndex();
@@ -74,43 +77,138 @@ namespace Utils
 
         public static void NextPage()
         {
-            if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
+            bool validPageFound = false;
+
+            for (int i = 0; i < Pages.Count - 1; i++)
             {
-                Pages[CurrentPageIndex].Disable();
-            }
-            
-            CurrentPageIndex = (CurrentPageIndex + 1) % Pages.Count;
-            CurrentPage = Pages[CurrentPageIndex];
-            
-            if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
-            {
-                Pages[CurrentPageIndex].Enable();
-                
-                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                int nextPageIndex = (CurrentPageIndex + 1) % Pages.Count;
+                PageType nextPageType = Pages[nextPageIndex].PageType;
+
+                if (nextPageType != PageType.Navigation)
                 {
-                    Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    Pages[CurrentPageIndex].Disable();
+                    CurrentPageIndex = nextPageIndex;
+                    CurrentPage = Pages[CurrentPageIndex];
+                    Pages[CurrentPageIndex].Enable();
+
+                    if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                    {
+                        Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    }
+                    validPageFound = true;
+                    break;
+                }
+            }
+
+            if (!validPageFound)
+            {
+                int smallestValidIndex = Pages.Count;
+
+                for (int i = 0; i < Pages.Count; i++)
+                {
+                    int currentIndex = (i + CurrentPageIndex) % Pages.Count;
+                    PageType pageType = Pages[currentIndex].PageType;
+
+                    if (pageType != PageType.Navigation && currentIndex < smallestValidIndex)
+                    {
+                        smallestValidIndex = currentIndex;
+                    }
+                }
+
+                if (smallestValidIndex != Pages.Count)
+                {
+                    Pages[CurrentPageIndex].Disable();
+                    CurrentPageIndex = smallestValidIndex;
+                    CurrentPage = Pages[CurrentPageIndex];
+                    Pages[CurrentPageIndex].Enable();
+
+                    if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                    {
+                        Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    }
+                    validPageFound = true;
+                }
+                else
+                {
+                    Debug.LogError("No valid page found to navigate to.");
                 }
             }
         }
 
         public static void PreviousPage()
         {
-            if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
-            {
-                Pages[CurrentPageIndex].Disable();
-            }
-            
-            CurrentPageIndex = (CurrentPageIndex - 1 + Pages.Count) % Pages.Count;
-            CurrentPage = Pages[CurrentPageIndex];
+            bool validPageFound = false;
 
-            if (CurrentPageIndex >= 0 && CurrentPageIndex < Pages.Count)
+            for (int i = Pages.Count - 1; i > 0; i--)
             {
-                Pages[CurrentPageIndex].Enable();
-                
-                if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                int prevPageIndex = (CurrentPageIndex - 1 + Pages.Count) % Pages.Count;
+                PageType prevPageType = Pages[prevPageIndex].PageType;
+
+                if (prevPageType != PageType.Navigation)
                 {
-                    Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    Pages[CurrentPageIndex].Disable();
+                    CurrentPageIndex = prevPageIndex;
+                    CurrentPage = Pages[CurrentPageIndex];
+                    Pages[CurrentPageIndex].Enable();
+
+                    if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                    {
+                        Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    }
+                    validPageFound = true;
+                    break;
                 }
+            }
+
+            if (!validPageFound)
+            {
+                for (int i = Pages.Count - 1; i >= 0; i--)
+                {
+                    int pageIndex = (i + CurrentPageIndex) % Pages.Count;
+                    PageType pageType = Pages[pageIndex].PageType;
+
+                    if (pageType == PageType.Navigation)
+                    {
+                        pageIndex = (pageIndex - 1 + Pages.Count) % Pages.Count;
+                    }
+
+                    PageType prevPageType = Pages[pageIndex].PageType;
+                    if (prevPageType != PageType.Navigation)
+                    {
+                        Pages[CurrentPageIndex].Disable();
+                        CurrentPageIndex = pageIndex;
+                        CurrentPage = Pages[CurrentPageIndex];
+                        Pages[CurrentPageIndex].Enable();
+
+                        if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
+                        {
+                            Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                        }
+                        validPageFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!validPageFound)
+            {
+                Debug.LogError("No valid page found to navigate to.");
+            }
+        }
+
+        public static void GoToPageById(int id)
+        {
+            if (id >= 0 && id < Pages.Count)
+            {
+                CurrentPage.Disable();
+                Pages[id].Enable();
+                CurrentPageIndex = id;
+                CurrentPage = Pages[id];
+                UpdateActiveModsBasedOnCurrentPageIndex();
+            }
+            else
+            {
+                Debug.LogError($"No page found with ID: {id}");
             }
         }
 
@@ -157,7 +255,7 @@ namespace Utils
                 Pages[CurrentPageIndex].NextModInCurrentPage();
                 if (pageMods.TryGetValue(CurrentPage, out string[] modsForCurrentPage))
                 {
-                    Pages[CurrentPageIndex].UpdateMods(modsForCurrentPage);
+                    CurrentPage.UpdateMods(modsForCurrentPage);
                 }
             }
         }
@@ -199,30 +297,50 @@ namespace Utils
         }
     }
 
+    public enum ModType
+    {
+        Navigation,
+        Toggle
+    }
+
     public class PageInfo
     {
         public string Title { get; set; }
         public string[] Mods { get; set; }
+        public PageType Type { get; set; }
+        public int Id { get; set; }
 
-        public PageInfo(string title, string[] mods)
+        public PageInfo(string title, int id, PageType type, params string[] mods)
         {
             Title = title;
             Mods = mods;
+            Type = type;
+            Id = id;
         }
+    }
+
+    public enum PageType
+    {
+        Standard,
+        Navigation
     }
 
     public class Page
     {
         public GameObject CanvasObject { get; private set; }
         public GameObject TextObject { get; private set; }
+        public PageType PageType { get; private set; }
+        public int PageId { get; private set; }
         public List<string> Titles { get; private set; } = new List<string>();
         public List<string> Mods { get; private set; } = new List<string>();
         public List<bool> ModSelectionStates { get; private set; } = new List<bool>();
         public int selectedIndex = 0;
         private string GUITitle = "Fallback Name";
 
-        public Page(string title, params string[] mods)
+        public Page(string title, int id, PageType type = PageType.Standard, params string[] mods)
         {
+            PageType = type;
+            PageId = id;
             GUITitle = title;
             Titles.Add(title.Replace(" ", "_"));
 
@@ -240,21 +358,12 @@ namespace Utils
             TextObject.transform.SetParent(CanvasObject.transform, false);
 
             SetUiPos();
-            
+
             foreach (var mod in mods)
             {
                 if (!Mods.Contains(mod))
                 {
                     Mods.Add(mod);
-                }
-            }
-
-            string[] defaultNavigationMods = { "NextPage", "PreviousPage" };
-            foreach (var navMod in defaultNavigationMods)
-            {
-                if (!Mods.Contains(navMod))
-                {
-                    Mods.Add(navMod);
                 }
             }
 
@@ -282,7 +391,7 @@ namespace Utils
         private void SetUiPos()
         {
             CanvasObject.transform.SetParent(GameObject.Find("Main Camera").transform, false);
-            
+
             RectTransform textRectTransform = TextObject.GetComponent<RectTransform>();
 
             float originalTextWidth = textRectTransform.rect.width;
@@ -310,12 +419,12 @@ namespace Utils
                 bool isSelected = IsModEnabled(modName);
 
                 bool isNavigationMod = modName == "NextPage" || modName == "PreviousPage";
-                
+
                 string selectionIndicator = !isNavigationMod ? (isSelected ? "<color=grey>[</color><color=green>✔</color><color=grey>]</color>" : "<color=grey>[</color><color=red>✖</color><color=grey>]</color>") : "";
                 string navigationIndicator = selectedIndex == i ? ">" : " ";
-                
+
                 string line = $"{navigationIndicator} {selectionIndicator} {modName,-30}";
-                
+
                 sb.AppendLine(line);
             }
 
@@ -405,5 +514,4 @@ namespace Utils
             }
         }
     }
-
 }
