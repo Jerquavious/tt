@@ -234,21 +234,25 @@ namespace Util
         }
 
         public static void CreateReference(bool isRightHanded)
-        {
-            reference = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            if (isRightHanded)
-            {
-                reference.transform.parent = GorillaTagger.Instance.leftHandTransform;
-            }
-            else
-            {
-                reference.transform.parent = GorillaTagger.Instance.rightHandTransform;
-            }
-            reference.GetComponent<Renderer>().material.color = backgroundColor.colors[0].color;
-            reference.transform.localPosition = new Vector3(0f, -0.1f, 0f);
-            reference.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-            buttonCollider = reference.GetComponent<SphereCollider>();
-        }
+{
+    // Create a sphere primitive as the reference object
+    reference = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+    // Set the parent transform based on the handedness
+    reference.transform.parent = isRightHanded 
+        ? GorillaTagger.Instance.rightHandTransform 
+        : GorillaTagger.Instance.leftHandTransform;
+
+    // Set the material color of the reference object
+    reference.GetComponent<Renderer>().material.color = backgroundColor.colors[0].color;
+
+    // Set the local position and scale of the reference object
+    reference.transform.localPosition = new Vector3(0f, -0.1f, 0f);
+    reference.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+
+    // Get the SphereCollider component
+    buttonCollider = reference.GetComponent<SphereCollider>();
+}
                
 
 private GameObject CreateMenu()
