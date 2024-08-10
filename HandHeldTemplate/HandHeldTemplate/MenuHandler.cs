@@ -152,7 +152,7 @@ namespace Util
             {
                 var gt = GorillaTagger.Instance;
                 gt.StartVibration(false, gt.taggedHapticStrength / 1, gt.taggedHapticDuration);
-                if (modName == "<color=grey>[<] Last Page</color>")
+                if (modName == "<color=white>[<] Last Page</color>")
                 {
                     Page previousPage = MenuHandler.GetNextPage(moveForward: false);
                     if (previousPage != null)
@@ -161,7 +161,7 @@ namespace Util
                         state = false;
                     }
                 }
-                else if (modName == "<color=grey>Next Page [>]</color>")
+                else if (modName == "<color=white>Next Page [>]</color>")
                 {
                     Page nextPage = MenuHandler.GetNextPage();
                     if (nextPage != null)
@@ -201,8 +201,8 @@ namespace Util
         public Dictionary<string, Button> ModNameToButtonMap = new Dictionary<string, Button>();
         public Dictionary<Button, bool> ButtonState = new Dictionary<Button, bool>();
         public GameObject MenuObject = null;
-        public string ForwardButtonName = "<color=grey>[<] Last Page</color>";
-        public string BackwardButtonName = "<color=grey>Next Page [>]</color>";
+        public string ForwardButtonName = "<color=white>[<] Last Page</color>";
+        public string BackwardButtonName = "<color=white>Next Page [>]</color>";
         public GameObject SharedCanvas = null;
         public GameObject titleObject = null;
         public string Title;
@@ -233,112 +233,95 @@ namespace Util
             GameObject backwardNavBtn = CreateButton(BackwardButtonName);
         }
 
-        public static void CreateReference(bool isRightHanded)
-{
-    // Create a sphere primitive as the reference object
-    reference = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                private GameObject CreateMenu()
+        {
+            GameObject menu = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            menu.transform.localScale = new Vector3(0.015f, 0.295f, 0.455f);
+            menu.transform.position = Player.Instance.leftHandTransform.position + new Vector3(0, 0, -8f);
+            menu.transform.rotation = Player.Instance.leftHandTransform.rotation;
+            UnityEngine.Object.Destroy(menu.GetComponent<BoxCollider>());
+            menu.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+            return menu;
+        }
+        public GameObject CreateButton(string modName)
+        {
+            GameObject btn = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            btn.transform.localScale = new Vector3(0.95f, 0.75f, 0.08f);
 
-    // Set the parent transform based on the handedness
-    reference.transform.parent = isRightHanded 
-        ? GorillaTagger.Instance.rightHandTransform 
-        : GorillaTagger.Instance.leftHandTransform;
+            BoxCollider btnColl = btn.GetComponent<BoxCollider>();
+            if (btnColl != null)
+            {
+                btnColl.isTrigger = true;
+                btnColl.size = new Vector3(0.02f, 0.35f, 0.03f);
+            }
+            btn.layer = 18;
 
-    // Set the material color of the reference object
-    reference.GetComponent<Renderer>().material.color = backgroundColor.colors[0].color;
+            float Offset = Buttons.Count * 0.06f;
+            Vector3 btnOffset = new Vector3(-0.128f + Offset, 0, 0.01f);
+            btn.transform.SetParent(MenuObject.transform, false);
+            btn.transform.position = MenuObject.transform.position + btnOffset;
+            btn.transform.rotation = MenuObject.transform.rotation;
+            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#ffff00"));
 
-    // Set the local position and scale of the reference object
-    reference.transform.localPosition = new Vector3(0f, -0.1f, 0f);
-    reference.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+            Button buttonComponent = btn.AddComponent<Button>();
+            buttonComponent.Name = modName;
+            buttonComponent.buttonObject = btn;
+            buttonComponent.modName = modName;
+            buttonComponent.ParentPage = this;
 
-    // Get the SphereCollider component
-    buttonCollider = reference.GetComponent<SphereCollider>();
-}
-               
+            ModNameToButtonMap[modName] = buttonComponent;
+            MenuHandler.modStates.Add(false);
+            Buttons.Add(buttonComponent);
+            ButtonObjects.Add(btn);
 
-private GameObject CreateMenu()
-{
-    GameObject menu = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    menu.transform.localScale = new Vector3(0.015f, 0.295f, 0.455f);
-    menu.transform.position = Player.Instance.leftHandTransform.position + new Vector3(0, 0, -8f);
-    menu.transform.rotation = Player.Instance.leftHandTransform.rotation;
-    UnityEngine.Object.Destroy(menu.GetComponent<BoxCollider>());
-    menu.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
-    return menu;
-}
+            ButtonState[buttonComponent] = false;
 
-public GameObject CreateButton(string modName)
-{
-    GameObject btn = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    btn.transform.localScale = new Vector3(0.095f, 0.75f, 0.08f);
+            Vector3 textOffset = new Vector3(-0.128f + Offset + 0, 0, 0.0174f);
+            GameObject textObj = new GameObject($"{modName}_Text");
+            textObj.transform.SetParent(SharedCanvas.transform, false);
+            textObj.transform.position = MenuObject.transform.position + textOffset;
+            textObj.transform.rotation = MenuObject.transform.rotation;
 
-    BoxCollider btnColl = btn.GetComponent<BoxCollider>();
-    if (btnColl != null)
-    {
-        btnColl.isTrigger = true;
-        btnColl.size = new Vector3(0.002f, 0.35f, 0.03f);
-    }
-    btn.layer = 18;
+            Text buttonText = textObj.AddComponent<Text>();
+            buttonText.text = !string.IsNullOrEmpty(modName) ? modName : "N/A";
+            buttonText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            buttonText.fontSize = 14;
+            buttonText.resizeTextForBestFit = false;
+            buttonText.alignment = TextAnchor.MiddleCenter;
 
-    float Offset = Buttons.Count * 0.06f;
-    Vector3 btnOffset = new Vector3(-0.128f + Offset, 0, 0.01f);
-    btn.transform.SetParent(MenuObject.transform, false);
-    btn.transform.position = MenuObject.transform.position + btnOffset;
-    btn.transform.rotation = MenuObject.transform.rotation;
-    btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#ffe600"));
+            RectTransform textRectTransform = textObj.GetComponent<RectTransform>();
+            textRectTransform.anchorMin = new Vector2(0, 0);
+            textRectTransform.anchorMax = new Vector2(1, 1);
+            textRectTransform.pivot = new Vector2(0.5f, 0.5f);
+            textRectTransform.position = MenuObject.transform.position + textOffset;
 
-    Button buttonComponent = btn.AddComponent<Button>();
-    buttonComponent.Name = modName;
-    buttonComponent.buttonObject = btn;
-    buttonComponent.modName = modName;
-    buttonComponent.ParentPage = this;
+            Quaternion newRotation = btn.transform.rotation * Quaternion.Euler(180f, 90f, 90f);
+            textRectTransform.rotation = newRotation;
+            textRectTransform.sizeDelta = new Vector2(0.5f, 0.5f);
+            textRectTransform.localScale = new Vector3(0.004f, 0.003f, 0.004f);
 
-    ModNameToButtonMap[modName] = buttonComponent;
-    MenuHandler.modStates.Add(false);
-    Buttons.Add(buttonComponent);
-    ButtonObjects.Add(btn);
+            ContentSizeFitter sizeFitter = textObj.AddComponent<ContentSizeFitter>();
+            sizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-    ButtonState[buttonComponent] = false;
+            CreateTitle();
+            return btn;
+        }
 
-    Vector3 textOffset = new Vector3(-0.128f + Offset + 0, 0, 0.0174f);
-    GameObject textObj = new GameObject($"{modName}_Text");
-    textObj.transform.SetParent(SharedCanvas.transform, false);
-    textObj.transform.position = MenuObject.transform.position + textOffset;
-    textObj.transform.rotation = MenuObject.transform.rotation;
 
-    Text buttonText = textObj.AddComponent<Text>();
-    buttonText.text = (modName != "" || modName != null) ? modName : "N/A";
-    buttonText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-    buttonText.fontSize = 14;
-    buttonText.resizeTextForBestFit = false;
+        private void CreateTitle()
+        {
+            if (titleObject == null)
+            {
+                Vector3 textOffset = new Vector3(-0.18857f, 0, 0.008f);
+                GameObject textObj = new GameObject($"{Title}_Text");
+                textObj.transform.SetParent(SharedCanvas.transform, false);
+                textObj.transform.transform.position = MenuObject.transform.position + textOffset;
+                textObj.transform.rotation = MenuObject.transform.rotation;
 
-    RectTransform textRectTransform = textObj.GetComponent<RectTransform>();
-    textRectTransform.anchorMin = new Vector2(0, 0);
-    textRectTransform.anchorMax = new Vector2(1, 1);
-    textRectTransform.pivot = new Vector2(0.5f, 0.5f);
-    textRectTransform.position = MenuObject.transform.position + textOffset;
-
-    Quaternion newRotation = btn.transform.rotation * Quaternion.Euler(180f, 90f, 90f);
-    textRectTransform.rotation = newRotation;
-    textRectTransform.sizeDelta = new Vector2(0.5f, 0.5f);
-    textRectTransform.localScale = new Vector3(0.004f, 0.002f, 0.004f);
-
-    CreateTitle();
-    return btn;
-}
-
-private void CreateTitle()
-{
-    if (titleObject == null)
-    {
-        Vector3 textOffset = new Vector3(-0.18857f, 0, 0.008f);
-        GameObject textObj = new GameObject($"{Title}_Text");
-        textObj.transform.SetParent(SharedCanvas.transform, false);
-        textObj.transform.transform.position = MenuObject.transform.position + textOffset;
-        textObj.transform.rotation = MenuObject.transform.rotation;
-
-        Text buttonText = textObj.AddComponent<Text>();
-        ContentSizeFitter sizeFitter = textObj.AddComponent<ContentSizeFitter>();
-        buttonText.text = (Title != "" || Title != null) ? Title : "N/A";
+                Text buttonText = textObj.AddComponent<Text>();
+                ContentSizeFitter sizeFitter = textObj.AddComponent<ContentSizeFitter>();
+                buttonText.text = (Title != "" || Title != null) ? Title : "N/A";
                 buttonText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
                 buttonText.fontSize = 64;
                 buttonText.resizeTextForBestFit = false;
@@ -353,9 +336,9 @@ private void CreateTitle()
                 Quaternion newRotation = MenuObject.transform.rotation * Quaternion.Euler(180f, 90f, 90f);
                 textRectTransform.rotation = newRotation;
                 textRectTransform.sizeDelta = new Vector2(01f, 0.1f);
-                textRectTransform.localScale = new Vector3(0.00155f, 0.00155f, 0.00155f);
+                textRectTransform.localScale = new Vector3(0.00155f, 0.00155f, 0.00130f);
             }
-        }
+        } 
 
         private void InitializeSharedCanvas()
         {
@@ -432,7 +415,7 @@ private void CreateTitle()
                 }
 
                 Color originalColor = targetButton.buttonObject.GetComponent<Renderer>().material.color;
-                Color newColor = originalColor == Color.grey ? HexToColor("#2e2e2e") : Color.grey;
+                Color newColor = originalColor == Color.black ? HexToColor("#000000") : Color.black;
                 targetButton.buttonObject.GetComponent<Renderer>().material.SetColor("_Color", newColor);
             }
         }
