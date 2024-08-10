@@ -141,18 +141,18 @@ namespace Util
         {
             if (pressDelay)
             {
-                timeDelay -= 0.1f;
+                timeDelay -= 0.3f;
                 if (timeDelay <= 0)
                 {
                     pressDelay = false;
-                    timeDelay = 0.33f;
+                    timeDelay = 0.44f;
                 }
             }
             if (!pressDelay)
             {
                 var gt = GorillaTagger.Instance;
                 gt.StartVibration(false, gt.taggedHapticStrength / 1, gt.taggedHapticDuration);
-                if (modName == "<color=grey>[<] Last Page</color>")
+                if (modName == "<color=white>[<] Last Page</color>")
                 {
                     Page previousPage = MenuHandler.GetNextPage(moveForward: false);
                     if (previousPage != null)
@@ -161,7 +161,7 @@ namespace Util
                         state = false;
                     }
                 }
-                else if (modName == "<color=grey>Next Page [>]</color>")
+                else if (modName == "<color=white>Next Page [>]</color>")
                 {
                     Page nextPage = MenuHandler.GetNextPage();
                     if (nextPage != null)
@@ -175,7 +175,7 @@ namespace Util
                     ParentPage.ToggleModStateAndColor(modName);
                 }
                 pressDelay = true;
-                timeDelay = 0.33f;
+                timeDelay = 0.44f;
             }
         }
     }
@@ -284,7 +284,7 @@ namespace Util
 
             Text buttonText = textObj.AddComponent<Text>();
             buttonText.text = !string.IsNullOrEmpty(modName) ? modName : "N/A";
-            buttonText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            buttonText.font = GameObject.Find("COC Text").GetComponent<Text>().font;
             buttonText.fontSize = 14;
             buttonText.resizeTextForBestFit = false;
             buttonText.alignment = TextAnchor.MiddleCenter;
