@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -141,18 +141,18 @@ namespace Util
         {
             if (pressDelay)
             {
-                timeDelay -= 0.3f;
+                timeDelay -= 0.1f;
                 if (timeDelay <= 0)
                 {
                     pressDelay = false;
-                    timeDelay = 0.44f;
+                    timeDelay = 0.33f;
                 }
             }
             if (!pressDelay)
             {
                 var gt = GorillaTagger.Instance;
                 gt.StartVibration(false, gt.taggedHapticStrength / 1, gt.taggedHapticDuration);
-                if (modName == "<color=white>[<] Last Page</color>")
+                if (modName == "<color=grey>[<] Last Page</color>")
                 {
                     Page previousPage = MenuHandler.GetNextPage(moveForward: false);
                     if (previousPage != null)
@@ -161,7 +161,7 @@ namespace Util
                         state = false;
                     }
                 }
-                else if (modName == "<color=white>Next Page [>]</color>")
+                else if (modName == "<color=grey>Next Page [>]</color>")
                 {
                     Page nextPage = MenuHandler.GetNextPage();
                     if (nextPage != null)
@@ -175,7 +175,7 @@ namespace Util
                     ParentPage.ToggleModStateAndColor(modName);
                 }
                 pressDelay = true;
-                timeDelay = 0.44f;
+                timeDelay = 0.33f;
             }
         }
     }
@@ -201,8 +201,8 @@ namespace Util
         public Dictionary<string, Button> ModNameToButtonMap = new Dictionary<string, Button>();
         public Dictionary<Button, bool> ButtonState = new Dictionary<Button, bool>();
         public GameObject MenuObject = null;
-        public string ForwardButtonName = "<color=white>[<] Last Page</color>";
-        public string BackwardButtonName = "<color=white>Next Page [>]</color>";
+        public string ForwardButtonName = "<color=grey>[<] Last Page</color>";
+        public string BackwardButtonName = "<color=grey>Next Page [>]</color>";
         public GameObject SharedCanvas = null;
         public GameObject titleObject = null;
         public string Title;
@@ -236,7 +236,7 @@ namespace Util
         private GameObject CreateMenu()
         {
             GameObject menu = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            menu.transform.localScale = new Vector3(0.1f, 0.3f, 0.3825f);
+            menu.transform.localScale = new Vector3(0.015f, 0.295f, 0.455f);
             menu.transform.position = Player.Instance.leftHandTransform.position + new Vector3(0, 0, -8f);
             menu.transform.rotation = Player.Instance.leftHandTransform.rotation;
             UnityEngine.Object.Destroy(menu.GetComponent<BoxCollider>());
@@ -246,22 +246,22 @@ namespace Util
         public GameObject CreateButton(string modName)
         {
             GameObject btn = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            btn.transform.localScale = new Vector3(0.09f, 0.9f, 0.08f);
+            btn.transform.localScale = new Vector3(0.095f, 0.75f, 0.08f);
 
             BoxCollider btnColl = btn.GetComponent<BoxCollider>();
             if (btnColl != null)
             {
                 btnColl.isTrigger = true;
-                btnColl.size = new Vector3(0.09f, 0.9f, 0.08f);
+                btnColl.size = new Vector3(0.002f, 0.35f, 0.03f);
             }
             btn.layer = 18;
 
-            float Offset = Buttons.Count * 0.1f;
-            Vector3 btnOffset = new Vector3(0.56f, 0f, 0.28f - Offset);
+            float Offset = Buttons.Count * 0.06f;
+            Vector3 btnOffset = new Vector3(-0.128f + Offset, 0, 0.01f);
             btn.transform.SetParent(MenuObject.transform, false);
             btn.transform.position = MenuObject.transform.position + btnOffset;
             btn.transform.rotation = MenuObject.transform.rotation;
-            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#fff700"));
+            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#ffe600"));
 
             Button buttonComponent = btn.AddComponent<Button>();
             buttonComponent.Name = modName;
@@ -283,11 +283,10 @@ namespace Util
             textObj.transform.rotation = MenuObject.transform.rotation;
 
             Text buttonText = textObj.AddComponent<Text>();
-            buttonText.text = !string.IsNullOrEmpty(modName) ? modName : "N/A";
-            buttonText.font = GameObject.Find("COC Text").GetComponent<Text>().font;
+            buttonText.text = (modName != "" || modName != null) ? modName : "N/A";
+            buttonText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             buttonText.fontSize = 14;
             buttonText.resizeTextForBestFit = false;
-            buttonText.alignment = TextAnchor.MiddleCenter;
 
             RectTransform textRectTransform = textObj.GetComponent<RectTransform>();
             textRectTransform.anchorMin = new Vector2(0, 0);
@@ -298,16 +297,11 @@ namespace Util
             Quaternion newRotation = btn.transform.rotation * Quaternion.Euler(180f, 90f, 90f);
             textRectTransform.rotation = newRotation;
             textRectTransform.sizeDelta = new Vector2(0.5f, 0.5f);
-            textRectTransform.localScale = new Vector3(0.004f, 0.003f, 0.004f);
-
-            ContentSizeFitter sizeFitter = textObj.AddComponent<ContentSizeFitter>();
-            sizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            textRectTransform.localScale = new Vector3(0.004f, 0.002f, 0.004f);
 
             CreateTitle();
             return btn;
         }
-
 
         private void CreateTitle()
         {
@@ -328,17 +322,6 @@ namespace Util
                 buttonText.alignment = TextAnchor.MiddleCenter;
                 sizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-                RectTransform textRectTransform = textObj.GetComponent<RectTransform>();
-                textRectTransform.anchorMin = new Vector2(0, 0);
-                textRectTransform.anchorMax = new Vector2(1, 1);
-                textRectTransform.pivot = new Vector2(0.5f, 0.5f);
-                textRectTransform.position = MenuObject.transform.position + textOffset;
-                Quaternion newRotation = MenuObject.transform.rotation * Quaternion.Euler(180f, 90f, 90f);
-                textRectTransform.rotation = newRotation;
-                textRectTransform.sizeDelta = new Vector2(01f, 0.1f);
-                textRectTransform.localScale = new Vector3(0.00155f, 0.00155f, 0.00130f);
-            }
-        }
                 RectTransform textRectTransform = textObj.GetComponent<RectTransform>();
                 textRectTransform.anchorMin = new Vector2(0, 0);
                 textRectTransform.anchorMax = new Vector2(1, 1);
