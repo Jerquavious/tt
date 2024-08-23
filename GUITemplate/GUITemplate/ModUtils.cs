@@ -354,7 +354,7 @@ namespace Utils
             TextObject.GetComponent<Text>().text = "LOADING...";
             TextObject.GetComponent<Text>().fontSize = 12;
             TextObject.GetComponent<Text>().alignment = TextAnchor.UpperLeft;
-            TextObject.GetComponent<Text>().font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            TextObject.GetComponent<Text>().font = GameObject.Find("COC Text").GetComponent<Test>().font;
             TextObject.transform.SetParent(CanvasObject.transform, false);
 
             SetUiPos();
