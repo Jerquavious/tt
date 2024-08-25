@@ -25,7 +25,9 @@ namespace HandHeldTemplate
                 new PageInfo("Nixx Client [P6]", new string[] { "Grab Bat", "Grab Bug", "Loud Hand Taps", "No Hand Tap" }),
                 new PageInfo("Nixx Client [P7]", new string[] { "Mat All", "Vibrate All", "Helicopter", "PC Monke" }),
                 new PageInfo("Nixx Client [P8]", new string[] { "Size Changer", "Rape Gun", "Copy Movement", "Scare Gun" }),
-                new PageInfo("Nixx Client [P9]", new string[] { "Grab Rig", "Rig Gun", "Mat Gun", "Reach Gun" })
+                new PageInfo("Nixx Client [P9]", new string[] { "Grab Rig", "Rig Gun", "Mat Gun", "Reach Gun" }),
+                new PageInfo("Nixx Client [P10]", new string[] { "Teleport Gun", "Tracers", "Make Gamemode Casual", "Make Gamemode Infection", "Strobe" })
+
 
             };
 
@@ -222,6 +224,26 @@ namespace HandHeldTemplate
             if (MenuHandler.IsModEnabled("Reach Gun"))
             {
                 ModManager.ReachGun();
+            }
+            if (MenuHandler.IsModEnabled("Teleport Gun"))
+            {
+                ModManager.TPGun();
+            }
+            if (MenuHandler.IsModEnabled("Tracers"))
+            {
+                ModManager.Tracers();
+            }
+            if (MenuHandler.IsModEnabled("Make Gamemode Casual"))
+            {
+                ModManager.Casual();
+            }
+            if (MenuHandler.IsModEnabled("Make Gamemode Infection"))
+            {
+                ModManager.Infection();
+            }
+            if (MenuHandler.IsModEnabled("Strobe"))
+            {
+                ModManager.Strobe();
             }
         }
     }
