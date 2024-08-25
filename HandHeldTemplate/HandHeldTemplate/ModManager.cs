@@ -839,5 +839,5 @@ namespace HandHeldTemplate.Mods
                 }
             }
         }
-    }
-}
+       
+        public static void TpGun()
