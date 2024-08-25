@@ -240,7 +240,7 @@ namespace Util
             menu.transform.position = Player.Instance.leftHandTransform.position + new Vector3(0, 0, -8f);
             menu.transform.rotation = Player.Instance.leftHandTransform.rotation;
             UnityEngine.Object.Destroy(menu.GetComponent<BoxCollider>());
-            menu.GetComponent<Renderer>().material.SetColor("_Color", Color.yellow);
+            menu.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#ff00ff"));
             return menu;
         }
         public GameObject CreateButton(string modName)
@@ -261,7 +261,7 @@ namespace Util
             btn.transform.SetParent(MenuObject.transform, false);
             btn.transform.position = MenuObject.transform.position + btnOffset;
             btn.transform.rotation = MenuObject.transform.rotation;
-            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#ffff00"));
+            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#000000"));
 
             Button buttonComponent = btn.AddComponent<Button>();
             buttonComponent.Name = modName;
@@ -415,7 +415,7 @@ namespace Util
                 }
 
                 Color originalColor = targetButton.buttonObject.GetComponent<Renderer>().material.color;
-                Color newColor = originalColor == Color.black ? HexToColor("#000000") : Color.black;
+                Color newColor = originalColor == Color.black ? HexToColor("#FF0000") : Color.black;
                 targetButton.buttonObject.GetComponent<Renderer>().material.SetColor("_Color", newColor);
             }
         }
