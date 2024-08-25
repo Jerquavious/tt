@@ -17,15 +17,15 @@ namespace HandHeldTemplate
             base.OnInitializeMelon();
             List<PageInfo> pages = new List<PageInfo>
             {
-                new PageInfo("Nixx Client [P1]", new string[] { "Platforms", "Mosa Speed", "Fast Speed Boost", "Faster Speed Boost"}),
-                new PageInfo("Nixx Client [P2]", new string[] { "Tag Gun [M]", "Tag Gun", "Ghost Monke", "Invis Monke" }),
+                new PageInfo("Nixx Client [P1]", new string[] { "Platforms", "Mosa Speed Boost", "Fast Speed Boost", "Faster Speed Boost"}),
+                new PageInfo("Nixx Client [P2]", new string[] { "Tag Gun [M]", "Tag Gun", "Ghost Monkey", "Invisible Monkey" }),
                 new PageInfo("Nixx Client [P3]", new string[] { "Slow Fly", "Medium Fly", "Fast Fly", "Lag All" }),
-                new PageInfo("Nixx Client [P4]", new string[] { "Set Master", "Primary Disconnect [L]", "Primary Disconnect [R]", "No Name" }),
+                new PageInfo("Nixx Client [P4]", new string[] { "Set Master", "Primary Disconnect [LG]", "Primary Disconnect [RG]", "No Name" }),
                 new PageInfo("Nixx Client [P5]", new string[] { "Tag Aura", "Far Tag Aura", "Tag All", "No Tag Freeze" }),
                 new PageInfo("Nixx Client [P6]", new string[] { "Grab Bat", "Grab Bug", "Loud Hand Taps", "No Hand Tap" }),
-                new PageInfo("Nixx Client [P7]", new string[] { "Mat All", "Vibrate All", "Helicopter", "PC Monke" }),
+                new PageInfo("Nixx Client [P7]", new string[] { "Material Spam All", "Vibrate All", "Helicopter", "PC Monkey" }),
                 new PageInfo("Nixx Client [P8]", new string[] { "Size Changer", "Rape Gun", "Copy Movement", "Scare Gun" }),
-                new PageInfo("Nixx Client [P9]", new string[] { "Grab Rig", "Rig Gun", "Mat Gun", "Reach Gun" }),
+                new PageInfo("Nixx Client [P9]", new string[] { "Grab Rig", "Rig Gun", "Material Gun", "Reach Gun" }),
                 new PageInfo("Nixx Client [P10]", new string[] { "Teleport Gun", "Tracers", "Make Gamemode Casual", "Make Gamemode Infection", "Strobe" })
 
 
@@ -85,7 +85,7 @@ namespace HandHeldTemplate
             {
                 ModManager.Platforms();
             }
-            if (MenuHandler.IsModEnabled("Mosa Speed"))
+            if (MenuHandler.IsModEnabled("Mosa Speed Boost"))
             {
                 ModManager.MosaSpeed();
             }
@@ -105,11 +105,11 @@ namespace HandHeldTemplate
             {
                 ModManager.TagGunNoMaster();
             }
-            if (MenuHandler.IsModEnabled("Ghost Monke"))
+            if (MenuHandler.IsModEnabled("Ghost Monkey"))
             {
                 ModManager.GhostMonke();
             }
-            if (MenuHandler.IsModEnabled("Invis Monke"))
+            if (MenuHandler.IsModEnabled("Invis Monkey"))
             {
                 ModManager.InvisMonke();
             }
@@ -133,11 +133,11 @@ namespace HandHeldTemplate
             {
                 ModManager.SetMaster();
             }
-            if (MenuHandler.IsModEnabled("Primary Disconnect [L]"))
+            if (MenuHandler.IsModEnabled("Primary Disconnect [LG]"))
             {
                 ModManager.LeftDisconnect();
             }
-            if (MenuHandler.IsModEnabled("Primary Disconnect [R]"))
+            if (MenuHandler.IsModEnabled("Primary Disconnect [RG]"))
             {
                 ModManager.RightDisconnect();
             }
@@ -177,7 +177,7 @@ namespace HandHeldTemplate
             {
                 ModManager.NoHits();
             }
-            if (MenuHandler.IsModEnabled("Mat All"))
+            if (MenuHandler.IsModEnabled("Material Spam All"))
             {
                 ModManager.MatAll();
             }
@@ -217,7 +217,7 @@ namespace HandHeldTemplate
             {
                 ModManager.RigGun();
             }
-            if (MenuHandler.IsModEnabled("Mat Gun"))
+            if (MenuHandler.IsModEnabled("Material Gun"))
             {
                 ModManager.MatGun();
             }
