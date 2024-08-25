@@ -152,7 +152,7 @@ namespace Util
             {
                 var gt = GorillaTagger.Instance;
                 gt.StartVibration(false, gt.taggedHapticStrength / 1, gt.taggedHapticDuration);
-                if (modName == "<color=white>[<] Last Page</color>")
+                if (modName == "<color=white>[<--] Last Page</color>")
                 {
                     Page previousPage = MenuHandler.GetNextPage(moveForward: false);
                     if (previousPage != null)
@@ -161,7 +161,7 @@ namespace Util
                         state = false;
                     }
                 }
-                else if (modName == "<color=white>Next Page [>]</color>")
+                else if (modName == "<color=white>Next Page [-->]</color>")
                 {
                     Page nextPage = MenuHandler.GetNextPage();
                     if (nextPage != null)
@@ -201,8 +201,8 @@ namespace Util
         public Dictionary<string, Button> ModNameToButtonMap = new Dictionary<string, Button>();
         public Dictionary<Button, bool> ButtonState = new Dictionary<Button, bool>();
         public GameObject MenuObject = null;
-        public string ForwardButtonName = "<color=white>[<] Last Page</color>";
-        public string BackwardButtonName = "<color=white>Next Page [>]</color>";
+        public string ForwardButtonName = "<color=white>[<--] Last Page</color>";
+        public string BackwardButtonName = "<color=white>Next Page [-->]</color>";
         public GameObject SharedCanvas = null;
         public GameObject titleObject = null;
         public string Title;
@@ -261,7 +261,7 @@ namespace Util
             btn.transform.SetParent(MenuObject.transform, false);
             btn.transform.position = MenuObject.transform.position + btnOffset;
             btn.transform.rotation = MenuObject.transform.rotation;
-            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#000000"));
+            btn.GetComponent<Renderer>().material.SetColor("_Color", HexToColor("#808080"));
 
             Button buttonComponent = btn.AddComponent<Button>();
             buttonComponent.Name = modName;
@@ -415,7 +415,7 @@ namespace Util
                 }
 
                 Color originalColor = targetButton.buttonObject.GetComponent<Renderer>().material.color;
-                Color newColor = originalColor == Color.black ? HexToColor("#FF0000") : Color.black;
+                Color newColor = originalColor == Color.grey ? HexToColor("#FF0000") : Color.grey;
                 targetButton.buttonObject.GetComponent<Renderer>().material.SetColor("_Color", newColor);
             }
         }
