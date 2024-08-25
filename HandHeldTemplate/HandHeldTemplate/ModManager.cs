@@ -840,4 +840,79 @@ namespace HandHeldTemplate.Mods
             }
         }
        
-        public static void TpGun()
+        public static void TPGun()
+		{
+			bool gripButtonDown = EasyInputs.GetGripButtonDown(1);
+			if (gripButtonDown)
+			{
+				RaycastHit raycastHit;
+				Physics.Raycast(Player.Instance.rightHandTransform.position - Player.Instance.rightHandTransform.up, -Player.Instance.rightHandTransform.up + Player.Instance.rightHandTransform.forward, ref raycastHit);
+				GameObject gameObject = GameObject.CreatePrimitive(0);
+				gameObject.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
+				gameObject.GetComponent<Renderer>().material.color = Color.red;
+				gameObject.transform.position = raycastHit.point;
+				Object.Destroy(gameObject.GetComponent<BoxCollider>());
+				Object.Destroy(gameObject.GetComponent<Rigidbody>());
+				Object.Destroy(gameObject.GetComponent<Collider>());
+				Object.Destroy(gameObject, Time.deltaTime);
+				Mods.DrawColorline(gameObject, Color.red);
+				bool triggerButtonDown = EasyInputs.GetTriggerButtonDown(1);
+				if (triggerButtonDown)
+				{
+					Mods.DrawColorline(gameObject, Color.green);
+					Player.Instance.transform.position = gameObject.transform.position;
+					Player.Instance.GetComponent<Rigidbody>().velocity = new Vector3(0f, 0f, 0f);
+					gameObject.GetComponent<Renderer>().material.color = Color.green;
+				}
+			}
+		}
+
+        public static void Tracers()
+		{
+			GameObject gameObject = GameObject.Find("RightHand Controller");
+			bool flag = PhotonNetwork.CurrentRoom != null;
+			if (flag)
+			{
+				foreach (VRRig vrrig in GorillaParent.instance.vrrigs)
+				{
+					bool flag2 = vrrig;
+					if (flag2)
+					{
+						GameObject gameObject2 = new GameObject("Line");
+						LineRenderer lineRenderer = gameObject2.AddComponent<LineRenderer>();
+						lineRenderer.startColor = (lineRenderer.endColor = Color.grey);
+						lineRenderer.startWidth = (lineRenderer.endWidth = 0.01f);
+						lineRenderer.positionCount = 2;
+						lineRenderer.SetPositions(new Vector3[]
+						{
+							gameObject.transform.position,
+							vrrig.headMesh.transform.position
+						});
+						lineRenderer.material.shader = Shader.Find("GUI/Text Shader");
+						Object.Destroy(gameObject2, Time.deltaTime);
+					}
+				}
+			}
+		}
+
+        public static void Casual()
+		{
+			Hashtable hashtable = new Hashtable();
+			hashtable.Add("gameMode", "forestDEFAULTCASUAL");
+			PhotonNetwork.CurrentRoom.SetCustomProperties(hashtable, null, null);
+		}
+
+        public static void Infection()
+		{
+			Hashtable hashtable = new Hashtable();
+			hashtable.Add("gameMode", "forestDEFAULTMODDED_MODDED_INFECTIONINFECTION");
+			PhotonNetwork.CurrentRoom.SetCustomProperties(hashtable, null, null);
+		}
+
+        public static void Strobe()
+		{
+			GorillaKeyboardButton gorillaKeyboardButton = new GorillaKeyboardButton();
+			gorillaKeyboardButton.characterString = Random.Range(0, 10).ToString();
+			GorillaComputer.instance.ProcessColorState(gorillaKeyboardButton);
+			GorillaComputer.instance.colorCursorLine = Random.Range(0, 3);
+		}
